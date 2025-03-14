@@ -13,7 +13,7 @@ class TextView extends TextField {
     public static var textFormats : Array<TextFormat>;
     private static var fontName : String;
 
-    public function new(toPrint : String = "") {
+    public function new(toPrint : String = "", x : Float = 0, y : Float = 0, format : Int = 0) {
         super();
 
         if (fontName == null) {
@@ -26,7 +26,7 @@ class TextView extends TextField {
 
         background = false;
         border = false;
-        defaultTextFormat = textFormats[0];
+        defaultTextFormat = textFormats[format];
         embedFonts = true;
         mouseWheelEnabled = false;
         multiline = true;
@@ -34,6 +34,10 @@ class TextView extends TextField {
         type = TextFieldType.DYNAMIC;
         wordWrap = false;
         autoSize = TextFieldAutoSize.LEFT;
+        this.x = x;
+        this.y = y;
+        scaleX = 1/3;
+        scaleY = 1/3;
 
         text = toPrint;
     }
