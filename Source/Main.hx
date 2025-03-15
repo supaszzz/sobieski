@@ -27,8 +27,11 @@ class Main extends Sprite
 		scaleX = scale;
 		scaleY = scale;
 
-		var b = new Battle();
+		var b = new battle.Battle();
 		addChild(b);
+
+		b.setEnemy(new battle.EnemyPtoszek(b));
+		b.start();
 	}
 
 	public function globalKeyDown(e : KeyboardEvent) {

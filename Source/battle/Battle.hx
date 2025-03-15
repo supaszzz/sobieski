@@ -1,14 +1,12 @@
-package;
+package battle;
 
 import openfl.events.TimerEvent;
 import openfl.utils.Timer;
-import openfl.events.Event;
 import openfl.display.Tile;
 import openfl.display.Tilemap;
 import openfl.geom.Rectangle;
 import openfl.display.Tileset;
 import openfl.utils.Assets;
-import openfl.display.Bitmap;
 import openfl.display.Sprite;
 
 class Battle extends Sprite {
@@ -27,7 +25,12 @@ class Battle extends Sprite {
 
     private var timer : Timer;
 
-    public var encounterText : String;
+    public var encounterText : String = "";
+
+    private var battleBG : AnimatedSprite;
+
+    public var battleMain : BattleMain;
+    public var enemy : Enemy;
 
     public function new() {
         super();
@@ -52,25 +55,31 @@ class Battle extends Sprite {
         hpCounter = new TextView(Std.string(PlayerStats.hp), menuTile.x + 24, menuTile.y + 15, 1);
         epCounter = new TextView(Std.string(ep), menuTile.x + 48, menuTile.y + 15, 1);
 
+        battleBG = new AnimatedSprite("assets/hud/battle_bg.png", 428, 240);
+        battleBG.alpha = 0.5;
+        battleBG.animate(8, 0, 16, 0);
+
+        addChild(battleBG);
         addChild(tilemap);
         addChild(hpCounter);
         addChild(epCounter);
 
         timer = new Timer(120, 0);
         timer.addEventListener(TimerEvent.TIMER, onTimer);
-        timer.start();
+        timer.start();        
+    }
 
-        var bla = new Menu([
-            "asdfasdf",
-            "asdfsadfsdfdsa",
-            "ssaasasa",
-            "ffff",
-            "aaaaa"
-        ], 2);
-        bla.addEventListener(Menu.SELECT, (e : Event) -> {
-            Text.print(this, bla.itemViews[bla.selectedItem].text);
-        });
-        addChild(bla);
+    public function start() {
+        battleMain = new BattleMain(this);
+        addChild(battleMain);
+    }
+
+    public function setEnemy(enemy : Enemy) {
+        if (this.enemy != null) {
+            tilemap.removeTile(this.enemy);
+        }
+        this.enemy = enemy;
+        tilemap.addTile(enemy);
     }
 
     private function onTimer(e : TimerEvent) {
@@ -81,4 +90,6 @@ class Battle extends Sprite {
         }
         hpCounter.text = Std.string(PlayerStats.hp);
     }
+
+    
 }

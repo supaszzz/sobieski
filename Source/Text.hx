@@ -24,7 +24,12 @@ class Text extends TextView {
 
     private static var textSound : Sound;
 
-    public function new(toPrint : String) {
+    private var focus : Bool;
+
+    private var endCallback : () -> Void;
+    private var breakCallback : () -> Void;
+
+    public function new(toPrint : String, focus : Bool, ?endCallback : () -> Void, ?breakCallback : () -> Void) {
         super();
 
         if (textSound == null) {
@@ -33,12 +38,18 @@ class Text extends TextView {
 
         currentFormat = defaultTextFormat;
         this.toPrint = toPrint;
+        this.focus = focus;
+
+        this.endCallback = endCallback;
+        this.breakCallback = breakCallback;
 
         timer = new Timer(50, 0);
         timer.addEventListener(TimerEvent.TIMER, onTimer);
         timer.start();
 
-        Main.globalStage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+
+        if (focus)
+            Main.globalStage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
     }
     
     private function onKeyDown(e : KeyboardEvent) {
@@ -50,6 +61,7 @@ class Text extends TextView {
                     clear = false;
                 }
                 if (charIndex == toPrint.length) {
+                    if (endCallback != null) endCallback();
                     destroy();
                 }
             case Keyboard.X | Keyboard.SHIFT:
@@ -103,6 +115,8 @@ class Text extends TextView {
                 paused = true;
                 clear = true;
                 skipping = false;
+            case 'b':
+                if (breakCallback != null) breakCallback();
         }
     }
 
@@ -112,13 +126,17 @@ class Text extends TextView {
         }
         timer.stop();
         timer.removeEventListener(TimerEvent.TIMER, onTimer);
-        Main.globalStage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+        this.endCallback = null;
+        this.breakCallback = null;
+        if (focus)
+            Main.globalStage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
     }
 
-    public static function print(obj : DisplayObjectContainer, str : String, x : Float = 0, y : Float = 0) {
-        var text : Text = new Text(str);
+    public static function print(obj : DisplayObjectContainer, str : String, x : Float = 0, y : Float = 0, focus : Bool = true, ?endCallback : () -> Void, ?breakCallback : () -> Void) : Text {
+        var text : Text = new Text(str, focus, endCallback, breakCallback);
         text.x = x;
         text.y = y;
         obj.addChild(text);
+        return text;
     }
 }

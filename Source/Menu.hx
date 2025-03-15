@@ -55,7 +55,7 @@ class Menu extends Sprite {
                 selectedItem += rows;
             case Keyboard.Z | Keyboard.ENTER:
                 dispatchEvent(new Event(SELECT));
-                destroy();
+                focused = false;
         }
         if (selectedItem < 0)
             selectedItem = 0;
