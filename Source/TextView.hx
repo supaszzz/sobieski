@@ -21,6 +21,7 @@ class TextView extends TextField {
             textFormats = [
                 new TextFormat(fontName, 24, 0xFFFFFF),
                 new TextFormat(fontName, 24, 0xFF9900),
+                new TextFormat(fontName, 24, 0xFF0000),
             ];
         }
 

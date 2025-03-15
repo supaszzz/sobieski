@@ -1,5 +1,6 @@
 package battle;
 
+import motion.Actuate;
 import openfl.events.TimerEvent;
 import openfl.utils.Timer;
 import openfl.display.Tile;
@@ -15,7 +16,7 @@ class Battle extends Sprite {
     private var epTile : Tile;
 
     private var hpCounter : TextView;
-    private var epCounter : TextView;
+    public var epCounter : TextView;
 
     public var ep = PlayerStats.maxEP;
     public var hpTarget = PlayerStats.hp;
@@ -30,7 +31,7 @@ class Battle extends Sprite {
     private var battleBG : AnimatedSprite;
 
     public var battleMain : BattleMain;
-    public var enemy : Enemy;
+    public var enemies : Array<Enemy> = [];
 
     public function new() {
         super();
@@ -74,12 +75,31 @@ class Battle extends Sprite {
         addChild(battleMain);
     }
 
-    public function setEnemy(enemy : Enemy) {
-        if (this.enemy != null) {
-            tilemap.removeTile(this.enemy);
-        }
-        this.enemy = enemy;
+    public function addEnemy(enemy : Enemy, animated : Bool = false) {
+        enemy.y = 130 - enemy.height / 2;
+        this.enemies.push(enemy);
+        alignEnemies(animated);
         tilemap.addTile(enemy);
+    }
+    public function removeEnemy(enemy : Enemy) {
+        tilemap.removeTile(enemy);
+        enemies.remove(enemy);
+        alignEnemies(true);
+    }
+
+    private function alignEnemies(animated : Bool) {
+        var fullWidth = 0.0;
+        for (i in enemies)
+            fullWidth += i.width;
+        fullWidth += 8 * enemies.length - 1;
+        var currentX = 213 - fullWidth / 2;
+        for (i in enemies) {
+            if (animated)
+                Actuate.tween(i, 0.6, {x: currentX});
+            else
+                i.x = currentX;
+            currentX += i.width + 8;
+        }
     }
 
     private function onTimer(e : TimerEvent) {
@@ -91,5 +111,12 @@ class Battle extends Sprite {
         hpCounter.text = Std.string(PlayerStats.hp);
     }
 
-    
+    public function rollHP(value : Int) {
+        hpTarget += value;
+        if (hpTarget <= 0) {
+            hpCounter.defaultTextFormat = TextView.textFormats[2];
+        } else {
+            hpCounter.defaultTextFormat = TextView.textFormats[1];
+        }
+    }
 }

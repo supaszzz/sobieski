@@ -1,5 +1,6 @@
 package;
 
+import motion.Actuate;
 import openfl.events.Event;
 import openfl.system.Capabilities;
 import openfl.display.Stage;
@@ -30,7 +31,8 @@ class Main extends Sprite
 		var b = new battle.Battle();
 		addChild(b);
 
-		b.setEnemy(new battle.EnemyPtoszek(b));
+		b.addEnemy(new battle.EnemyPtoszek(b));
+		b.addEnemy(new battle.EnemyPtoszek(b));
 		b.start();
 	}
 
@@ -42,5 +44,12 @@ class Main extends Sprite
 			scaleY = scale;
 			dispatchEvent(new Event(SCALE_CHANGE));
 		}
+	}
+
+	public function shakeScreen() {
+		Actuate.update((v : Float) -> {
+			x = Math.sin(v)*(20 - v*2);
+			y = Math.cos(v)*(20 - v*2);
+		}, 1, [0], [10]);
 	}
 }

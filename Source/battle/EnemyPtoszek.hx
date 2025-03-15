@@ -9,7 +9,7 @@ class EnemyPtoszek extends Enemy {
 
     public function new(battle : Battle) {
         super(
-            battle, 5, 2, "Ptoszek",
+            battle, 5, 2, 4, "Ptoszek",
             getTileset(),
             "umar",
             "Ptoszek przylecial!!!",
@@ -17,7 +17,7 @@ class EnemyPtoszek extends Enemy {
         );
     }
     public function turn() : String {
-        battle.battleMain.nextDamage = 3;
+        battle.battleMain.damageQueue.add(genericAttack());
         return "tura ptoszka";
     }
 
