@@ -1,5 +1,7 @@
 package;
 
+import openfl.media.Sound;
+import openfl.utils.Assets;
 import openfl.events.Event;
 import openfl.ui.Keyboard;
 import openfl.events.KeyboardEvent;
@@ -13,8 +15,17 @@ class Menu extends Sprite {
 
     public static final SELECT = "menuSelect";
 
+    public static var beepLow : Sound;
+    public static var beepHigh : Sound;
+
     public function new(items : Array<String>, rows : Int = 64, selectedItem : Int = 0) {
         super();
+
+        if (beepLow == null) {
+            beepLow = Assets.getSound("assets/sound/beep_low.wav");
+            beepHigh = Assets.getSound("assets/sound/beep_high.wav");
+        }
+
         this.selectedItem = selectedItem;
         this.rows = rows;
 
@@ -44,6 +55,7 @@ class Menu extends Sprite {
         if (!focused)
             return;
         itemViews[selectedItem].defaultTextFormat = TextView.textFormats[0];
+        var low = true;
         switch (e.keyCode) {
             case Keyboard.W | Keyboard.UP:
                 selectedItem--;
@@ -56,7 +68,11 @@ class Menu extends Sprite {
             case Keyboard.Z | Keyboard.ENTER:
                 dispatchEvent(new Event(SELECT));
                 focused = false;
+                beepHigh.play();
+                low = false;
         }
+        if (low) beepLow.play();
+
         if (selectedItem < 0)
             selectedItem = 0;
         else if (selectedItem >= itemViews.length)

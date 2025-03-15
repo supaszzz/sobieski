@@ -1,5 +1,8 @@
 package;
 
+import battle.BattleGroup;
+import openfl.utils.Assets;
+import openfl.display.Bitmap;
 import motion.Actuate;
 import openfl.events.Event;
 import openfl.system.Capabilities;
@@ -21,6 +24,7 @@ class Main extends Sprite
 		super();
 		globalStage = stage;
 		global = this;
+		BattleGroup.registerAll();
 
 		stage.window.resizable = false;
 		stage.addEventListener(KeyboardEvent.KEY_DOWN, globalKeyDown);
@@ -28,12 +32,8 @@ class Main extends Sprite
 		scaleX = scale;
 		scaleY = scale;
 
-		var b = new battle.Battle();
+		var b = BattleGroup.encounter(0);
 		addChild(b);
-
-		b.addEnemy(new battle.EnemyPtoszek(b));
-		b.addEnemy(new battle.EnemyPtoszek(b));
-		b.start();
 	}
 
 	public function globalKeyDown(e : KeyboardEvent) {
@@ -46,10 +46,21 @@ class Main extends Sprite
 		}
 	}
 
-	public function shakeScreen() {
+	public function shakeScreen(power : Float = 1, speed : Float = 1, duration : Float = 1) {
 		Actuate.update((v : Float) -> {
-			x = Math.sin(v)*(20 - v*2);
-			y = Math.cos(v)*(20 - v*2);
-		}, 1, [0], [10]);
+			x = Math.sin(v * speed * duration)*(20 - v*2)*power;
+			y = Math.cos(v * speed * duration)*(20 - v*2)*power;
+		}, duration, [0], [10]);
+	}
+
+	public function showGameOver() {
+		var bitmap = new Bitmap(Assets.getBitmapData("assets/hud/game_over.png"));
+		bitmap.alpha = 0;
+		addChild(bitmap);
+		Actuate.tween(bitmap, 0.6, {alpha: 1});
+		Actuate.tween(bitmap, 0.6, {alpha: 0}, false).delay(2.5).onComplete(() -> {
+			removeChild(bitmap);
+		});
+		
 	}
 }

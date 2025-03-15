@@ -9,10 +9,9 @@ class EnemyPtoszek extends Enemy {
 
     public function new(battle : Battle) {
         super(
-            battle, 5, 2, 4, "Ptoszek",
+            battle, 5, 2, 4, 60, "Ptoszek",
             getTileset(),
             "umar",
-            "Ptoszek przylecial!!!",
             2
         );
     }

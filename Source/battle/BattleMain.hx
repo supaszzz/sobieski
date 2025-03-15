@@ -1,5 +1,6 @@
 package battle;
 
+import motion.Actuate;
 import openfl.media.Sound;
 import openfl.utils.Assets;
 import openfl.events.Event;
@@ -17,6 +18,8 @@ class BattleMain extends Sprite {
     public var playerQueue : List<Enemy>;
 
     private static var hitSound : Sound;
+
+    public var wonExp : Int = 0;
 
     public var blocking : Bool = false;
 
@@ -61,13 +64,15 @@ class BattleMain extends Sprite {
         return true;
     }
 
-    public function damageEnemy(id : Int, value : Float, turnStr : String) {
+    public function damageEnemy(id : Int, value : Float, turnStr : String, printName : Bool = false) {
         var enemy = battle.enemies[id];
         var damage = Std.int(Math.max(1, (Math.random() + 0.5) * value - enemy.def));
         enemy.hp -= damage;
-        turnStr += '${enemy.name} traci $damage%b HP!';
-        if (enemy.hp <= 0)
+        turnStr += (printName ? '${enemy.name} t' : 'T') + 'raci $damage%b HP.';
+        if (enemy.hp <= 0) {
             turnStr += '\n${enemy.deathText}';
+            wonExp += enemy.exp;
+        }
 
         playerQueue.add(enemy);
         return turnStr;
@@ -78,28 +83,46 @@ class BattleMain extends Sprite {
         blocking = false;
         switch (actionSelectMenu.selectedItem) {
             case 0:
-                if (!takeEP(2)) {
+                if (!takeEP(10)) {
                     print("Nie masz wystarczajaco EP, by atakowac!", true, beginTurn);
                     return;
                 }
-                turnStr += "atak\n";
-                turnStr = damageEnemy(0, PlayerStats.atk, turnStr);
+                var atak = (i : Int) -> {
+                    turnStr += Strings.getAttackText(battle.enemies[i].gender, battle.enemies[i].name);
+                    turnStr = damageEnemy(i, PlayerStats.atk, turnStr);
+                    enemiesTurn(turnStr);
+                }
+                if (battle.enemies.length == 1) {
+                    atak(0);
+                    return;
+                }
+
+                battle.tilemap.addTile(new Selector(battle, i -> {
+                    if (i == -1) {
+                        actionSelectMenu.focused = true;
+                        takeEP(-10);
+                        return;
+                    }
+                    atak(i);
+                }));
+                return;
             case 1:
-                if (!takeEP(7)) {
+                if (!takeEP(50)) {
                     print("Nie masz wystarczajaco EP, by uzyc ULTa!", true, beginTurn);
                     return;
                 }
-                turnStr += "ult\n";
+                turnStr += '${Strings.getUlt()}\n';
+                battle.battleBG.ult();
                 for (i in 0...battle.enemies.length) {
                     if (i != 0)
                         turnStr += "%c";
-                    turnStr = damageEnemy(i, PlayerStats.atk * 2.5, turnStr);
+                    turnStr = damageEnemy(i, PlayerStats.atk * 2.5 + 5, turnStr, true);
                 }
             case 2:
                 //asdfasdf
             case 3:
-                turnStr += "Blokujesz atak!";
-                battle.ep = Std.int(Math.min(battle.ep + 5, PlayerStats.maxEP));
+                turnStr += "Probujesz zablokowac atak!\nOdzyskujesz 15 EP.";
+                battle.ep = Std.int(Math.min(battle.ep + 15, PlayerStats.maxEP));
                 battle.epCounter.text = Std.string(battle.ep);
                 blocking = true;
             case 4:
@@ -116,7 +139,14 @@ class BattleMain extends Sprite {
     }
 
     private function enemiesTurn(turnStr : String, endBattle : Bool = false) {
-        if (!endBattle) for (enemy in battle.enemies) {
+        var allDead = battle.allDead();
+        if (allDead) {
+            turnStr += '%cWygrales! Zdobywasz $wonExp EXP!';
+            PlayerStats.exp += wonExp;
+            turnStr += PlayerStats.updateLevel();
+            endBattle = true;
+        }
+        else if (!endBattle) for (enemy in battle.enemies) {
             if (enemy.hp <= 0)
                 continue;
 
@@ -124,7 +154,11 @@ class BattleMain extends Sprite {
             var dmg = damageQueue.last();
             turnStr += dmg == 0 ? 'Nie trafił${enemy.gender}!' : 'Tracisz ${dmg}%b HP!';
         }
-        print(turnStr, true, endBattle ? beginTurn : beginTurn, () -> {
+        print(turnStr, true, endBattle ? () -> {
+            Actuate.tween(battle, 0.6, {alpha: 0}).onComplete(() -> {
+                battle.destroy();
+            });
+        } : beginTurn, () -> {
             if (!playerQueue.isEmpty()) {
                 playerQueue.pop().damage();
                 return;
@@ -146,8 +180,17 @@ class BattleMain extends Sprite {
     public function print(text : String, focus : Bool = true, ?endCb : () -> Void, ?breakCb : () -> Void) {
         if (encounterText != null) {
             encounterText.destroy();
-            encounterText = null;
         }
-        return Text.print(encounterTextWindow, text, 8, 8, focus, endCb, breakCb);
+        return encounterText = Text.print(encounterTextWindow, text, 8, 8, focus, endCb, breakCb);
+    }
+
+    public function destroy() {
+        removeChild(actionSelectWindow);
+        removeChild(encounterTextWindow);
+        actionSelectMenu.removeEventListener(Menu.SELECT, playerTurn);
+        actionSelectMenu.destroy();
+        if (encounterText != null) {
+            encounterText.destroy();
+        }
     }
 }

@@ -1,5 +1,7 @@
 package battle;
 
+import openfl.media.SoundChannel;
+import openfl.media.Sound;
 import motion.Actuate;
 import openfl.events.TimerEvent;
 import openfl.utils.Timer;
@@ -21,28 +23,40 @@ class Battle extends Sprite {
     public var ep = PlayerStats.maxEP;
     public var hpTarget = PlayerStats.hp;
 
-    private var tilemap : Tilemap;
+    public var tilemap : Tilemap;
     private static var tileset : Tileset;
+    private static var loseTileset : Tileset;
 
     private var timer : Timer;
 
     public var encounterText : String = "";
 
-    private var battleBG : AnimatedSprite;
+    public var battleBG : BattleBG;
 
     public var battleMain : BattleMain;
     public var enemies : Array<Enemy> = [];
 
-    public function new() {
+    public static var playerDeath : Sound;
+
+    public var battleMusic : SoundChannel;
+
+    public function new(music : Sound) {
         super();
 
         if (tileset == null) {
-            tileset = new Tileset(Assets.getBitmapData("assets/hud/battle_hud.png"), [
+            var rects = [
                 new Rectangle(0, 0, 64, 40),
                 new Rectangle(0, 40, 15, 13),
-                new Rectangle(15, 40, 15, 13)
-            ]);
+                new Rectangle(15, 40, 15, 13),
+                new Rectangle(30, 40, 11, 14)
+            ];
+            tileset = new Tileset(Assets.getBitmapData("assets/hud/battle_hud.png"), rects);
+            loseTileset = new Tileset(Assets.getBitmapData("assets/hud/battle_hud_lose.png"), rects);
+
+            playerDeath = Assets.getSound("assets/sound/death.wav");
         }
+
+        battleMusic = music.play(0, 1000);
 
         tilemap = new Tilemap(360, 240, tileset, false);
 
@@ -56,9 +70,7 @@ class Battle extends Sprite {
         hpCounter = new TextView(Std.string(PlayerStats.hp), menuTile.x + 24, menuTile.y + 15, 1);
         epCounter = new TextView(Std.string(ep), menuTile.x + 48, menuTile.y + 15, 1);
 
-        battleBG = new AnimatedSprite("assets/hud/battle_bg.png", 428, 240);
-        battleBG.alpha = 0.5;
-        battleBG.animate(8, 0, 16, 0);
+        battleBG = new BattleBG();
 
         addChild(battleBG);
         addChild(tilemap);
@@ -86,6 +98,13 @@ class Battle extends Sprite {
         enemies.remove(enemy);
         alignEnemies(true);
     }
+    public function allDead() : Bool {
+        for (i in enemies) {
+            if (i.hp > 0)
+                return false;
+        }
+        return true;
+    }
 
     private function alignEnemies(animated : Bool) {
         var fullWidth = 0.0;
@@ -107,6 +126,15 @@ class Battle extends Sprite {
             PlayerStats.hp++;
         } else if (hpTarget < PlayerStats.hp) {
             PlayerStats.hp--;
+
+            if (PlayerStats.hp == 0) {
+                timer.stop();
+                playerDeath.play();
+                Actuate.tween(this, 1.2, {alpha: 0}).delay(0.6).onComplete(() -> {
+                    destroy();
+                    Main.global.showGameOver();
+                });
+            }
         }
         hpCounter.text = Std.string(PlayerStats.hp);
     }
@@ -115,8 +143,23 @@ class Battle extends Sprite {
         hpTarget += value;
         if (hpTarget <= 0) {
             hpCounter.defaultTextFormat = TextView.textFormats[2];
+            epCounter.defaultTextFormat = TextView.textFormats[2];
+            tilemap.tileset = loseTileset;
         } else {
             hpCounter.defaultTextFormat = TextView.textFormats[1];
+            epCounter.defaultTextFormat = TextView.textFormats[1];
+            tilemap.tileset = tileset;
+        }
+    }
+
+    public function destroy() {
+        timer.stop();
+        timer.removeEventListener(TimerEvent.TIMER, onTimer);
+        parent.removeChild(this);
+        battleBG.destroy();
+        battleMusic.stop();
+        if (battleMain != null) {
+            battleMain.destroy();
         }
     }
 }

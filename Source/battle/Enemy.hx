@@ -13,12 +13,12 @@ abstract class Enemy extends Tile {
     public var name : String;
     public var battle : Battle;
     public var deathText : String;
-
+    public var exp : Int;
     public var gender : String;
 
     private static var hitSound : Sound;
 
-    public function new(battle: Battle, hp : Int, def : Int, atk : Int, name : String, tileset : Tileset, deathText : String, encounterText : String, scale : Float = 1, gender : String = '') {
+    public function new(battle: Battle, hp : Int, def : Int, atk : Int, exp : Int, name : String, tileset : Tileset, deathText : String, scale : Float = 1, gender : String = '') {
         super();
         if (hitSound == null) {
             hitSound = Assets.getSound("assets/sound/hit_enemy.wav");
@@ -27,11 +27,11 @@ abstract class Enemy extends Tile {
         this.hp = hp;
         this.def = def;
         this.atk = atk;
+        this.exp = exp;
         this.name = name;
         this.battle = battle;
         this.deathText = deathText;
         this.gender = gender;
-        battle.encounterText = encounterText;
         scaleX = scaleY = scale;
     }
 
@@ -42,7 +42,7 @@ abstract class Enemy extends Tile {
     }
 
     public function genericAttack() : Int {
-        return Std.int(Math.max(1, (Math.random() + 0.5) * atk - PlayerStats.def));
+        return Std.int(Math.max(1, (Math.random() + 0.5) * atk - (battle.battleMain.blocking ? 2 : 1) * PlayerStats.def));
     }
 
     public function damage() {

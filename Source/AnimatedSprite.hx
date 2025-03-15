@@ -1,5 +1,6 @@
 package;
 
+import openfl.display.Sprite;
 import openfl.events.TimerEvent;
 import openfl.utils.Timer;
 import openfl.geom.Rectangle;
@@ -8,25 +9,27 @@ import openfl.display.Tileset;
 import openfl.display.Tile;
 import openfl.display.Tilemap;
 
-class AnimatedSprite extends Tilemap {
-    private var tile : Tile;
+class AnimatedSprite extends Sprite {
+    public var tile : Tile;
+    public var tilemap : Tilemap;
     private var timer : Timer;
 
     private var beginId : Int;
     private var endId : Int;
 
     public function new(assetID : String, width : Int, height : Int) {
-        super(
+        super();
+        tilemap = new Tilemap(
             width,
             height,
             new Tileset(Assets.getBitmapData(assetID)),
             false
         );
-        var wTiles = Std.int(tileset.bitmapData.width / width);
-        var hTiles = Std.int(tileset.bitmapData.height / height);
+        var wTiles = Std.int(tilemap.tileset.bitmapData.width / width);
+        var hTiles = Std.int(tilemap.tileset.bitmapData.height / height);
         for (j in 0...hTiles)
             for (i in 0...wTiles)
-                tileset.addRect(new Rectangle(
+                tilemap.tileset.addRect(new Rectangle(
                     i * width,
                     j * height,
                     width,
@@ -34,10 +37,12 @@ class AnimatedSprite extends Tilemap {
                 ));
 
         tile = new Tile(0);
-        addTile(tile);
+        tilemap.addTile(tile);
         
         timer = new Timer(100, 0);
         timer.addEventListener(TimerEvent.TIMER, onTimer);
+
+        addChild(tilemap);
     }
 
     public function animate(fps : Float, beginId : Int, endId : Int, loops : Int) {
@@ -60,7 +65,9 @@ class AnimatedSprite extends Tilemap {
     }
 
     public function destroy() {
+        timer.stop();
         timer.removeEventListener(TimerEvent.TIMER, onTimer);
         parent.removeChild(this);
+        removeChild(tilemap);
     }
 }
