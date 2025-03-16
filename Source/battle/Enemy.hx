@@ -1,5 +1,6 @@
 package battle;
 
+import openfl.geom.Rectangle;
 import openfl.utils.Assets;
 import openfl.media.Sound;
 import motion.Actuate;
@@ -60,5 +61,15 @@ abstract class Enemy extends Tile {
         hitSound.play();
 	}
 
-    abstract public function turn() : String;
+    public function getTileset(id : String, size : Int = 32) : Tileset {
+        return new Tileset(Assets.getBitmapData(id), [
+            new Rectangle(0, 0, size, size),
+            new Rectangle(0, size, size, size)
+        ]);
+    }
+
+    public function turn() : String {
+        battle.battleMain.damageQueue.add(genericAttack());
+        return '$name atakuje!';
+    }
 }

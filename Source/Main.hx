@@ -1,5 +1,7 @@
 package;
 
+import battle.Battle;
+import map.Rooms;
 import battle.BattleGroup;
 import openfl.utils.Assets;
 import openfl.display.Bitmap;
@@ -17,6 +19,8 @@ class Main extends Sprite
 	public static var global : Main;
 	public static var scale : Float = 3;
 
+	public var currentBattle : Battle;
+
 	public static final SCALE_CHANGE = "scaleChange";
 
 	public function new()
@@ -25,6 +29,7 @@ class Main extends Sprite
 		globalStage = stage;
 		global = this;
 		BattleGroup.registerAll();
+		Rooms.loadMaps();
 
 		stage.window.resizable = false;
 		stage.addEventListener(KeyboardEvent.KEY_DOWN, globalKeyDown);
@@ -32,8 +37,13 @@ class Main extends Sprite
 		scaleX = scale;
 		scaleY = scale;
 
-		var b = BattleGroup.encounter(0);
-		addChild(b);
+		var o = new map.Overworld();
+		addChild(o);
+	}
+
+	public function encounter(id : Int = -1) {
+		currentBattle = BattleGroup.encounter(id);
+		addChild(currentBattle);
 	}
 
 	public function globalKeyDown(e : KeyboardEvent) {
