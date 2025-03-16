@@ -1,15 +1,25 @@
 package;
 
 class PlayerStats {
-    public static var hp = 20;
+    public static var hp : Int;
 
-    public static var maxHP = 20;
-    public static var maxEP = 50;
-    public static var def = 0;
-    public static var atk = 2;
+    public static var maxHP : Int;
+    public static var maxEP : Int;
+    public static var def : Int;
+    public static var atk : Int;
 
-    public static var level = 1;
-    public static var exp = 0;
+    public static var level : Int;
+    public static var exp : Int;
+
+    public static function defaultStats() {
+        hp = 20;
+        maxHP = 20;
+        maxEP = 50;
+        def = 0;
+        atk = 2;
+        level = 1;
+        exp = 0;
+    }
 
     public static function updateLevel() : String {
         var newLevel = Math.floor(50*Math.pow(1.3, level));

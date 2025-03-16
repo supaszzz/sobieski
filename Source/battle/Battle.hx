@@ -40,22 +40,21 @@ class Battle extends Sprite {
 
     public var battleMusic : SoundChannel;
 
+    public static function load() {
+        var rects = [
+            new Rectangle(0, 0, 64, 40),
+            new Rectangle(0, 40, 15, 13),
+            new Rectangle(15, 40, 15, 13),
+            new Rectangle(30, 40, 11, 14)
+        ];
+        tileset = new Tileset(Assets.getBitmapData("assets/hud/battle_hud.png"), rects);
+        loseTileset = new Tileset(Assets.getBitmapData("assets/hud/battle_hud_lose.png"), rects);
+
+        playerDeath = Assets.getSound("assets/sound/death.wav");
+    }
+
     public function new(music : Sound) {
         super();
-
-        if (tileset == null) {
-            var rects = [
-                new Rectangle(0, 0, 64, 40),
-                new Rectangle(0, 40, 15, 13),
-                new Rectangle(15, 40, 15, 13),
-                new Rectangle(30, 40, 11, 14)
-            ];
-            tileset = new Tileset(Assets.getBitmapData("assets/hud/battle_hud.png"), rects);
-            loseTileset = new Tileset(Assets.getBitmapData("assets/hud/battle_hud_lose.png"), rects);
-
-            playerDeath = Assets.getSound("assets/sound/death.wav");
-        }
-
         battleMusic = music.play(0, 1000);
 
         tilemap = new Tilemap(360, 240, tileset, false);

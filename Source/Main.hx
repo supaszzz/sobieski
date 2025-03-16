@@ -1,7 +1,11 @@
 package;
 
+import map.PlayerSprite;
+import openfl.events.TimerEvent;
+import openfl.utils.Timer;
+import map.Overworld;
 import battle.Battle;
-import map.Rooms;
+import map.Room;
 import battle.BattleGroup;
 import openfl.utils.Assets;
 import openfl.display.Bitmap;
@@ -20,6 +24,7 @@ class Main extends Sprite
 	public static var scale : Float = 3;
 
 	public var currentBattle : Battle;
+	public var overworld : Overworld;
 
 	public static final SCALE_CHANGE = "scaleChange";
 
@@ -29,7 +34,9 @@ class Main extends Sprite
 		globalStage = stage;
 		global = this;
 		BattleGroup.registerAll();
-		Rooms.loadMaps();
+		Room.loadMaps();
+		Battle.load();
+		PlayerStats.defaultStats();
 
 		stage.window.resizable = false;
 		stage.addEventListener(KeyboardEvent.KEY_DOWN, globalKeyDown);
@@ -37,13 +44,34 @@ class Main extends Sprite
 		scaleX = scale;
 		scaleY = scale;
 
-		var o = new map.Overworld();
-		addChild(o);
+		overworld = new Overworld();
+		addChild(overworld);
+		ovEnter();
 	}
 
 	public function encounter(id : Int = -1) {
-		currentBattle = BattleGroup.encounter(id);
-		addChild(currentBattle);
+		Actuate.tween(overworld, 0.5, {alpha: 0}).onComplete(() -> {
+			currentBattle = BattleGroup.encounter(id);
+			currentBattle.alpha = 0;
+			addChild(currentBattle);
+			Actuate.tween(currentBattle, 0.5, {alpha: 1});
+		});
+	}
+
+	public function randEncounter() {
+		var timer = new Timer(800, 1);
+		overworld.focused = false;
+		Battle.playerDeath.play();
+
+		var bitmap = new Bitmap(Assets.getBitmapData("assets/encounter.png"));
+		overworld.addChild(bitmap);
+		bitmap.x = overworld.currentRoom.npcLayer.playerSprite.x + 22 + overworld.currentRoom.x;
+		bitmap.y = overworld.currentRoom.npcLayer.playerSprite.y + overworld.currentRoom.y;
+		timer.addEventListener(TimerEvent.TIMER_COMPLETE, e -> {
+			encounter();
+			overworld.removeChild(bitmap);
+		});
+		timer.start();
 	}
 
 	public function globalKeyDown(e : KeyboardEvent) {
@@ -63,6 +91,11 @@ class Main extends Sprite
 		}, duration, [0], [10]);
 	}
 
+	public function ovEnter() {
+		Main.global.overworld.focused = true;
+        Actuate.tween(Main.global.overworld, 0.7, {alpha: 1});
+	}
+
 	public function showGameOver() {
 		var bitmap = new Bitmap(Assets.getBitmapData("assets/hud/game_over.png"));
 		bitmap.alpha = 0;
@@ -70,6 +103,9 @@ class Main extends Sprite
 		Actuate.tween(bitmap, 0.6, {alpha: 1});
 		Actuate.tween(bitmap, 0.6, {alpha: 0}, false).delay(2.5).onComplete(() -> {
 			removeChild(bitmap);
+			overworld.setRoom(0);
+			PlayerStats.defaultStats();
+			ovEnter();
 		});
 		
 	}

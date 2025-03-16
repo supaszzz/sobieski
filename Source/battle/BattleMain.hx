@@ -107,7 +107,7 @@ class BattleMain extends Sprite {
                 }));
                 return;
             case 1:
-                if (!takeEP(50)) {
+                if (!takeEP(26)) {
                     print("Nie masz wystarczajaco EP, by uzyc ULTa!", true, beginTurn);
                     return;
                 }
@@ -157,6 +157,7 @@ class BattleMain extends Sprite {
         print(turnStr, true, endBattle ? () -> {
             Actuate.tween(battle, 0.6, {alpha: 0}).onComplete(() -> {
                 battle.destroy();
+                Main.global.ovEnter();
             });
         } : beginTurn, () -> {
             if (!playerQueue.isEmpty()) {

@@ -1,3 +1,5 @@
 [
-    {"name": "parter", "layers": 3, "tileSize": 16}
+    {"name": "parter", "layers": 3, "tileSize": 16, "collision": [23], "npcs": [
+        {"x": 64, "y": 208, "type": 0}
+    ]}
 ]

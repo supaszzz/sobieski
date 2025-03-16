@@ -45,7 +45,6 @@ class BattleGroup {
     public static function registerAll() {
         battleMusic.push(Assets.getSound('assets/music/testbattle.wav'));
 
-        register(0, "Przylecialy ptoszki", 0, 2, EnemyAwaria);
-        register(1, "Przylecialy ptoszki", 0, 1, EnemyBurger);
+        register(0, "Przylecialy ptoszki", 0, 1, EnemyPtoszek);
     }
 }
